@@ -2,13 +2,14 @@
 import curses
 
 class GameBoardView:
-    def __init__(self, boardDimension, tileWidth, tileHeight, stdscr):
-        self.boardDimension = boardDimension
-        self.tileWidth = tileWidth
-        self.tileHeight = tileHeight
+    def __init__(self, stdscr):
+        self.boardDimension = 8
+        self.tileWidth = 7 
+        self.tileHeight = 3
         self.stdscr = stdscr
         self.drawBoard()
-    
+
+    # Draw the board to stdscr 
     def drawBoard(self):
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_RED)
