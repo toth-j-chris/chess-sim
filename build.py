@@ -1,5 +1,4 @@
 import os
-import sys
 
 
 def docker_build():
