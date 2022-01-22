@@ -11,12 +11,16 @@ class GameBoardView:
         self.boardDimension = 8
         self.tileWidth = 7 
         self.tileHeight = 3
+        self.boardYOffset = 5
+        self.boardXOffset = int((curses.COLS / 2) - ((self.boardDimension *
+            self.tileWidth) / 2))
         self.stdscr = stdscr
         
         self.stdscr.clear()
         curses.curs_set(False)
 
         self.drawBoard()
+        self.drawPieces()
 
         stdscr.refresh()
         stdscr.getkey()
@@ -32,14 +36,11 @@ class GameBoardView:
         colorSwitch = True
 
         heightCount = 0
-        yOffset = 5
-        xOffset = int((curses.COLS / 2) - ((self.boardDimension * self.tileWidth) /
-                2))
 
-        for i in range(yOffset, self.tileHeight * self.boardDimension + yOffset):
+        for i in range(self.boardYOffset, self.tileHeight * self.boardDimension + self.boardYOffset):
             heightCount += 1
-            for j in range(xOffset, self.tileWidth * self.boardDimension +
-                    xOffset, self.tileWidth):
+            for j in range(self.boardXOffset, self.tileWidth * self.boardDimension +
+                    self.boardXOffset, self.tileWidth):
                 if colorSwitch:
                     self.stdscr.addstr(i, j, tileLine, whiteTileColor)
                     colorSwitch = False
@@ -53,3 +54,15 @@ class GameBoardView:
                     colorSwitch = True
                 heightCount = 0
 
+    def drawPieces(self):
+        tileWidthOffset = int(self.tileWidth / 2)
+        tileHeightOffset = int(self.tileHeight / 2)
+
+        for i in range(self.boardDimension):
+            for j in range(self.boardDimension):
+                if self.gameBoardController.getSpace(i, j).getCurrentPiece() is not None:
+                    self.stdscr.addstr(self.boardYOffset + tileHeightOffset + (self.tileHeight *
+                        i), self.boardXOffset + tileWidthOffset + (self.tileWidth * j),
+                        self.gameBoardController.getSpace(i,
+                            j).getCurrentPiece().getSymbol(),
+                        curses.color_pair(1))
