@@ -1,4 +1,3 @@
-
 from Space import Space
 
 # [
@@ -9,8 +8,8 @@ from Space import Space
 # ]
 
 class GameBoardModel:
-    def __init__(self, boardDimension):
-        self.boardDimension = boardDimension
+    def __init__(self):
+        self.boardDimension = 8
         self.initSpaces()
 
     def initSpaces(self):

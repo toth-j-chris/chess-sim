@@ -4,7 +4,7 @@ class Space:
         self.x = x
         self.y = y
         self.name = self.getName()
-        self.hasPiece = False
+        self.currentPiece = False
 
     def getName(self):
         name = chr(self.x + ord('a')) + str(self.y + 1)

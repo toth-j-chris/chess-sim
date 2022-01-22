@@ -1,13 +1,25 @@
+from GameBoardController import GameBoardController
 
 import curses
 
 class GameBoardView:
-    def __init__(self, stdscr):
+    def __init__(self):
+        curses.wrapper(self._init)
+
+    def _init(self, stdscr):
+        self.gameBoardController = GameBoardController()
         self.boardDimension = 8
         self.tileWidth = 7 
         self.tileHeight = 3
         self.stdscr = stdscr
+        
+        self.stdscr.clear()
+        curses.curs_set(False)
+
         self.drawBoard()
+
+        stdscr.refresh()
+        stdscr.getkey()
 
     # Draw the board to stdscr 
     def drawBoard(self):

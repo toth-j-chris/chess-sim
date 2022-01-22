@@ -1,7 +1,7 @@
 
-from GameBoardController import GameBoardController
+from GameBoardView import GameBoardView
 
 def main():
-    GameBoardController()
+    GameBoardView()
 
 main()
