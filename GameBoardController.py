@@ -1,4 +1,3 @@
-
 import curses
 
 from GameBoardModel import GameBoardModel

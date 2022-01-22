@@ -9,7 +9,7 @@ class GameBoardView:
     def _init(self, stdscr):
         self.gameBoardController = GameBoardController()
         self.boardDimension = 8
-        self.tileWidth = 7 
+        self.tileWidth = 7
         self.tileHeight = 3
         self.boardYOffset = 5
         self.boardXOffset = int((curses.COLS / 2) - ((self.boardDimension *
