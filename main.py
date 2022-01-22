@@ -1,4 +1,3 @@
-
 from GameBoardView import GameBoardView
 
 def main():
