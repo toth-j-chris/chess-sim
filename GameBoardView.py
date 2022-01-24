@@ -112,23 +112,33 @@ class GameBoardView:
             self.__stdscr.addstr(xAxisOffsetY, xAxisOffsetX, chr(ord('a') + i))
 
     def __inputLoop(self):
+        inputPrompt = "Input: "
         inputPositionY = self.__boardYOffset + (self.__boardDimension *
                 self.__tileHeight) + 3
-        inputPositionX = self.__boardXOffset 
-        input = ''
+        inputPositionX = self.__boardXOffset + len(inputPrompt)
+        userInput = ""
         inputString = ""
         while (not inputString == "quit"):
             inputString = ""
             self.__stdscr.addstr(inputPositionY, 0, " " * curses.COLS)
             self.__stdscr.move(inputPositionY, inputPositionX)
-            self.__stdscr.addstr("Input: ")
+            self.__stdscr.addstr(inputPositionY, self.__boardXOffset,
+                    inputPrompt) 
             while (True):
-                input = self.__stdscr.getkey()
-                if input == "\n":
+                userInput = self.__stdscr.getkey()
+                if userInput == "\n":
                     break
-                inputString += input
+                elif userInput == "KEY_BACKSPACE":
+                    self.__stdscr.addstr(inputPositionY, inputPositionX +
+                            len(inputString) - 1, " ")
+                    inputString = inputString[0:len(inputString) - 1] 
+                    self.__stdscr.move(inputPositionY, inputPositionX +
+                            len(inputString))
+                else:
+                    inputString += userInput
             if not inputString == "quit":
                 if self.__gameBoardController.movePiece(inputString):
+                    self.__stdscr.addstr(inputPositionY + 1, 0, " " * curses.COLS)
                     self.__drawPieces()
                 else:
                     self.__drawInputError()
