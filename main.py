@@ -1,6 +1,6 @@
 from GameBoardView import GameBoardView
 
 def main():
-    GameBoardView()
+    GameBoardView(5, 3)
 
 main()
