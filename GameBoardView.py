@@ -3,66 +3,138 @@ from GameBoardController import GameBoardController
 import curses
 
 class GameBoardView:
-    def __init__(self):
-        curses.wrapper(self._init)
+    def __init__(self, tileWidth, tileHeight):
+        self.__gameBoardController = GameBoardController()
 
-    def _init(self, stdscr):
-        self.gameBoardController = GameBoardController()
-        self.boardDimension = 8
-        self.tileWidth = 7
-        self.tileHeight = 3
-        self.boardYOffset = 5
-        self.boardXOffset = int((curses.COLS / 2) - ((self.boardDimension *
-            self.tileWidth) / 2))
-        self.stdscr = stdscr
+        self.__boardDimension = self.__gameBoardController.getBoardDimension()
+        self.__tileWidth = tileWidth
+        self.__tileHeight = tileHeight
+
+        curses.wrapper(self.__initWithCurses)
+
+    def __initWithCurses(self, stdscr):
         
-        self.stdscr.clear()
+        self.__boardYOffset = int((curses.LINES / 2) - ((self.__boardDimension *
+            self.__tileHeight) / 2))
+        self.__boardXOffset = int((curses.COLS / 2) - ((self.__boardDimension *
+            self.__tileWidth) / 2))
+
+        self.__initColors()
+        
+        self.__stdscr = stdscr
+        
+        self.__stdscr.clear()
         curses.curs_set(False)
+        curses.echo()
 
-        self.drawBoard()
-        self.drawPieces()
+        self.__drawBoard()
+        self.__drawPieces()
+        self.__drawAxes()
 
-        stdscr.refresh()
-        stdscr.getkey()
+        self.__inputLoop()
+
+    def __initColors(self):
+        whiteTileColor = curses.COLORS - 1
+        blackTileColor = curses.COLORS - 2
+        whitePieceColor = curses.COLORS - 3
+        blackPieceColor = curses.COLORS - 4
+
+        curses.init_color(whiteTileColor, 650, 650, 1000)
+        curses.init_color(blackTileColor, 0, 0, 500)
+        curses.init_pair(1, blackPieceColor, whiteTileColor)
+        curses.init_pair(2, whitePieceColor, blackTileColor)
+        self.__spaceColors = []
+        self.__spaceColors.append(curses.color_pair(1))
+        self.__spaceColors.append(curses.color_pair(2))
+
+        curses.init_color(whitePieceColor, 900, 900, 900)
+        curses.init_color(blackPieceColor, 0, 0, 0)
+        curses.init_pair(3, whitePieceColor, whiteTileColor)
+        curses.init_pair(4, blackPieceColor, blackTileColor)
+        self.__pieceColors = []
+        self.__pieceColors.append(curses.color_pair(3))
+        self.__pieceColors.append(curses.color_pair(2))
+        self.__pieceColors.append(curses.color_pair(1))
+        self.__pieceColors.append(curses.color_pair(4))
+
 
     # Draw the board to stdscr 
-    def drawBoard(self):
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
-        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_RED)
-        whiteTileColor = curses.color_pair(1)
-        blackTileColor = curses.color_pair(2)
+    def __drawBoard(self):
+        tileLine = " " * self.__tileWidth
 
-        tileLine = " " * self.tileWidth
-        colorSwitch = True
+        for file in range(self.__boardDimension):
+            for rank in range(self.__boardDimension):
+                currSpace = self.__gameBoardController.getSpace(file, rank)
+                currColor = self.__spaceColors[currSpace.getColor()]
+                currTileLocY = self.__boardYOffset + ((self.__boardDimension *
+                        self.__tileHeight) - 1) - (self.__tileHeight * rank)
+                currTileLocX = self.__boardXOffset + (self.__tileWidth * file)
 
-        heightCount = 0
+                for k in range(self.__tileHeight):
+                    self.__stdscr.addstr(currTileLocY - k, currTileLocX,
+                            tileLine, currColor) 
 
-        for i in range(self.boardYOffset, self.tileHeight * self.boardDimension + self.boardYOffset):
-            heightCount += 1
-            for j in range(self.boardXOffset, self.tileWidth * self.boardDimension +
-                    self.boardXOffset, self.tileWidth):
-                if colorSwitch:
-                    self.stdscr.addstr(i, j, tileLine, whiteTileColor)
-                    colorSwitch = False
+    # Draw pieces on the board and refresh the screen
+    def __drawPieces(self):
+        tileCenterY = self.__boardYOffset + ((self.__boardDimension *
+            self.__tileHeight) - 1) - int(self.__tileHeight / 2)
+        tileCenterX = self.__boardXOffset + int(self.__tileWidth / 2)
+
+        for file in range(self.__boardDimension):
+            for rank in range(self.__boardDimension):
+                currSpace = self.__gameBoardController.getSpace(file, rank)
+                currSpaceColor = currSpace.getColor()
+                currCenterY = tileCenterY - (self.__tileHeight * rank)
+                currCenterX = tileCenterX + (self.__tileWidth * file)
+                if currSpace.getCurrentPiece() is not None:
+                    currPiece = currSpace.getCurrentPiece()
+                    currPieceColor = currPiece.getColor()
+                    currPieceSymbol = currPiece.getSymbol()
+                    currColorCode = (currPieceColor * 2) + currSpaceColor
+                    currColor = self.__pieceColors[currColorCode]
+                    self.__stdscr.addstr(currCenterY, currCenterX,
+                            currPieceSymbol, currColor | curses.A_BOLD)
                 else:
-                    self.stdscr.addstr(i, j, tileLine, blackTileColor)
-                    colorSwitch = True
-            if heightCount == self.tileHeight:
-                if colorSwitch:
-                    colorSwitch = False
+                    self.__stdscr.addstr(currCenterY, currCenterX, " ",
+                            self.__spaceColors[currSpaceColor])
+
+        self.__stdscr.refresh()
+
+    def __drawAxes(self):
+        for i in range(self.__boardDimension):
+            yAxisOffsetY = self.__boardYOffset + int(self.__tileHeight / 2) + (self.__tileHeight * i)
+            yAxisOffsetX = self.__boardXOffset - 3
+            xAxisOffsetY = self.__boardYOffset + (self.__boardDimension *
+                    self.__tileHeight) + 1
+            xAxisOffsetX = self.__boardXOffset + int(self.__tileWidth / 2) + (self.__tileWidth * i)
+            self.__stdscr.addstr(yAxisOffsetY, yAxisOffsetX,
+                    str(self.__boardDimension - i))
+            self.__stdscr.addstr(xAxisOffsetY, xAxisOffsetX, chr(ord('a') + i))
+
+    def __inputLoop(self):
+        inputPositionY = self.__boardYOffset + (self.__boardDimension *
+                self.__tileHeight) + 3
+        inputPositionX = self.__boardXOffset 
+        input = ''
+        inputString = ""
+        while (not inputString == "quit"):
+            inputString = ""
+            self.__stdscr.addstr(inputPositionY, 0, " " * curses.COLS)
+            self.__stdscr.move(inputPositionY, inputPositionX)
+            self.__stdscr.addstr("Input: ")
+            while (True):
+                input = self.__stdscr.getkey()
+                if input == "\n":
+                    break
+                inputString += input
+            if not inputString == "quit":
+                if self.__gameBoardController.movePiece(inputString):
+                    self.__drawPieces()
                 else:
-                    colorSwitch = True
-                heightCount = 0
+                    self.__drawInputError()
 
-    def drawPieces(self):
-        tileWidthOffset = int(self.tileWidth / 2)
-        tileHeightOffset = int(self.tileHeight / 2)
-
-        for i in range(self.boardDimension):
-            for j in range(self.boardDimension):
-                if self.gameBoardController.getSpace(i, j).getCurrentPiece() is not None:
-                    self.stdscr.addstr(self.boardYOffset + tileHeightOffset + (self.tileHeight *
-                        i), self.boardXOffset + tileWidthOffset + (self.tileWidth * j),
-                        self.gameBoardController.getSpace(i,
-                            j).getCurrentPiece().getSymbol(),
-                        curses.color_pair(1))
+    def __drawInputError(self):
+        errorPositionY = self.__boardYOffset + (self.__boardDimension *
+                self.__tileHeight) + 4
+        errorPositionX = self.__boardXOffset
+        self.__stdscr.addstr(errorPositionY, errorPositionX, "Invalid input, please try again.")
